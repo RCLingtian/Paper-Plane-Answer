@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Table, Button, Space, Modal, Form, Input, InputNumber, Switch, Select, Popconfirm, message, Breadcrumb, Tag } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import * as menusApi from '../../api/menus'
+import { invalidateMenus } from '../../hooks/useMenus'
 
 export default function MenusManage() {
     const [loading, setLoading] = useState(true)
@@ -67,6 +68,7 @@ export default function MenusManage() {
         if (res.code === 200) {
             message.success(editing ? '更新成功' : '创建成功')
             setModalOpen(false)
+            invalidateMenus() // 使前台导航缓存失效，下次渲染即拉最新
             load()
         } else {
             message.error(res.msg)
@@ -77,6 +79,7 @@ export default function MenusManage() {
         const res = await menusApi.deleteMenu(menuId)
         if (res.code === 200) {
             message.success('删除成功')
+            invalidateMenus()
             load()
         } else {
             message.error(res.msg)

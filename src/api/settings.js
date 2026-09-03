@@ -19,3 +19,13 @@ export function updateSettings(payload) {
 export function uploadImage(image, fileName) {
     return request('POST', '/api/settings/upload-image', { image, fileName })
 }
+
+// 上传站点图标 favicon（仅 admin）：存盘、删旧图、更新配置，返回 { url }
+export function uploadFavicon(image) {
+    return request('POST', '/api/settings/upload-favicon', { image })
+}
+
+// 恢复默认 favicon（仅 admin）：删除已上传图标，配置清空回退到 /favicon.svg
+export function resetFavicon() {
+    return request('DELETE', '/api/settings/favicon')
+}

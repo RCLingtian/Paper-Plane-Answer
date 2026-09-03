@@ -8,6 +8,8 @@ import NotFound from './pages/NotFound'
 import ProtectedRoute from './auth/ProtectedRoute'
 import RoleGuard from './auth/RoleGuard'
 import ForcePasswordGate from './auth/ForcePasswordGate'
+import FaviconSync from './components/FaviconSync'
+import { useDocumentTitle } from './hooks/useDocumentTitle'
 import DashLayout from './layouts/DashLayout'
 import AnsList from './pages/ans-dash/AnsList'
 import UsersList from './pages/ans-dash/UsersList'
@@ -19,10 +21,14 @@ import MenusManage from './pages/ans-dash/MenusManage'
 import FilesList from './pages/ans-dash/FilesList'
 
 function App() {
+    // 路由切换时自动设置浏览器标题：首页「纸条答案」，其余「页面名 | 纸条答案」
+    useDocumentTitle()
     return (
         <>
             {/* 首次登录强制改密闸门：forcePasswordChange=1 时弹出不可关闭弹窗 */}
             <ForcePasswordGate />
+            {/* 站点 favicon：读取后台配置并应用到所有页面标签图标 */}
+            <FaviconSync />
             <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Form, Input, Select, Button, Alert, message, Card, Radio, Switch, Upload, Divider, Space } from 'antd'
-import { InboxOutlined, UndoOutlined } from '@ant-design/icons'
+import { InboxOutlined, UndoOutlined, GlobalOutlined } from '@ant-design/icons'
 import * as settingsApi from '../../api/settings'
+import { applyFavicon, DEFAULT_FAVICON } from '../../components/FaviconSync'
 
 const { TextArea } = Input
 const { Dragger } = Upload
@@ -79,6 +80,10 @@ export default function Settings() {
     const [highlightReady, setHighlightReady] = useState(false)
     const [uploadingImg, setUploadingImg] = useState(false)
     const [ansImagePreview, setAnsImagePreview] = useState('')
+    // 站点图标 favicon：'' 表示默认 /favicon.svg
+    const [faviconPreview, setFaviconPreview] = useState('')
+    const [uploadingFavicon, setUploadingFavicon] = useState(false)
+    const [resettingFavicon, setResettingFavicon] = useState(false)
     // 用 Form.useWatch 监听 jsInjection/highlightLib 变化，驱动预览
     const jsInjection = Form.useWatch('jsInjection', form) || ''
     const highlightLib = Form.useWatch('highlightLib', form) || 'prism'
@@ -100,6 +105,7 @@ export default function Settings() {
                     allowRegister: res.data.allowRegister === '1' || res.data.allowRegister === true
                 })
                 setAnsImagePreview(res.data.ansImageUrl || '')
+                setFaviconPreview(res.data.faviconUrl || '')
             } else {
                 message.error(res.msg)
             }
@@ -166,6 +172,43 @@ export default function Settings() {
         }
         reader.readAsDataURL(file)
         return false // 阻止 antd 自动上传
+    }
+
+    // favicon 上传：转 base64 → 后端存盘并删旧图 → 立即生效（无需点「保存配置」）
+    function beforeUploadFavicon(file) {
+        const reader = new FileReader()
+        reader.onload = () => {
+            setUploadingFavicon(true)
+            settingsApi.uploadFavicon(reader.result).then((res) => {
+                setUploadingFavicon(false)
+                if (res.code === 200) {
+                    setFaviconPreview(res.data.url)
+                    applyFavicon(res.data.url) // 全站标签图标立即切换
+                    message.success('站点图标已更新，旧图标已自动删除')
+                } else {
+                    message.error(res.msg)
+                }
+            }).catch(() => {
+                setUploadingFavicon(false)
+                message.error('上传失败，请稍后重试')
+            })
+        }
+        reader.readAsDataURL(file)
+        return false // 阻止 antd 自动上传
+    }
+
+    // 恢复默认 favicon：后端删除已上传图标并清空配置
+    async function handleResetFavicon() {
+        setResettingFavicon(true)
+        const res = await settingsApi.resetFavicon()
+        setResettingFavicon(false)
+        if (res.code === 200) {
+            setFaviconPreview('')
+            applyFavicon('')
+            message.success('已恢复为默认图标 favicon.svg')
+        } else {
+            message.error(res.msg)
+        }
     }
 
     // 恢复默认 JS 注入代码：从后端拉取默认值，填入表单（不自动保存，需用户点「保存配置」）
@@ -292,6 +335,57 @@ export default function Settings() {
                         </Button>
                     </Form.Item>
                 </Form>
+            </Card>
+
+            {/* 站点图标 favicon：上传/恢复默认即时生效，独立于上方表单 */}
+            <Card
+                title={<Space><GlobalOutlined />站点图标（favicon）</Space>}
+                style={{ marginTop: 16 }}
+            >
+                <Space align="start" size={24} wrap>
+                    <div style={{
+                        width: 64, height: 64, border: '1px solid #f0f0f0', borderRadius: 8,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        background: '#fafafa', flexShrink: 0
+                    }}>
+                        <img src={faviconPreview || DEFAULT_FAVICON} alt="站点图标" style={{ width: 40, height: 40 }} />
+                    </div>
+                    <div style={{ maxWidth: 420 }}>
+                        <p style={{ margin: '0 0 8px' }}>
+                            当前状态：{faviconPreview
+                                ? '自定义图标'
+                                : <span>默认图标 <strong>favicon.svg</strong></span>}
+                        </p>
+                        <Space wrap>
+                            <Upload
+                                accept="image/*,.ico"
+                                beforeUpload={beforeUploadFavicon}
+                                maxCount={1}
+                                showUploadList={false}
+                                disabled={uploadingFavicon}
+                            >
+                                <Button icon={<InboxOutlined />} loading={uploadingFavicon}>
+                                    {uploadingFavicon ? '上传中...' : '上传新图标'}
+                                </Button>
+                            </Upload>
+                            <Button
+                                icon={<UndoOutlined />}
+                                onClick={handleResetFavicon}
+                                loading={resettingFavicon}
+                                disabled={!faviconPreview}
+                            >
+                                恢复默认
+                            </Button>
+                        </Space>
+                        <Alert
+                            style={{ marginTop: 12 }}
+                            type="info"
+                            showIcon
+                            message="支持 svg/png/ico/jpg/gif/webp；上传后所有页面的浏览器标签图标立即更换，无需点「保存配置」。"
+                            description="更换图标会自动删除上一张已上传的图标文件；默认 favicon.svg 受保护不会被删除，点「恢复默认」即可换回。"
+                        />
+                    </div>
+                </Space>
             </Card>
         </div>
     )

@@ -70,6 +70,8 @@ router.get('/', async (req, res) => {
         // anscard 图片源：custom=统一用配置的上传图；api=用答案自带图
         ansImageMode: map.ans_image_mode || 'api',
         ansImageUrl: map.ans_image_url || '',
+        // 站点图标 favicon：空表示用默认 /favicon.svg
+        faviconUrl: map.favicon_url || '',
         // 是否开放注册
         allowRegister: map.allow_register == null ? '1' : map.allow_register
     }))
@@ -152,6 +154,77 @@ router.post('/upload-image', async (req, res) => {
     // 透传可选 fileName 仅用于日志
     void fileName
     return res.json(ok({ url }))
+})
+
+// 读取/写入 favicon 配置（值为 /api/settings/uploads/favicon_xxx.ext，空=默认 /favicon.svg）
+async function getFaviconSetting() {
+    const [rows] = await pool.query("SELECT svalue FROM settings WHERE skey = 'favicon_url'")
+    return rows[0]?.svalue || ''
+}
+async function setFaviconSetting(url) {
+    await pool.query(
+        `INSERT INTO settings (skey, svalue) VALUES ('favicon_url', ?)
+         ON DUPLICATE KEY UPDATE svalue = VALUES(svalue)`,
+        [url]
+    )
+}
+
+// POST /api/settings/upload-favicon  仅 admin，上传站点图标
+// 存盘后删除上一张已上传的图标文件，再更新配置（默认 favicon.svg 不受影响）
+router.post('/upload-favicon', async (req, res) => {
+    const guard = await requireAdmin(req)
+    if (!guard.ok) return res.json(fail(guard.msg, guard.code))
+
+    const { image } = req.body || {}
+    if (!image || typeof image !== 'string') {
+        return res.json(fail('缺少图标数据', 400))
+    }
+    // 解析 data URL（兼容 image/x-icon 等含连字符的 MIME）
+    const m = /^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/.exec(image)
+    if (!m) return res.json(fail('图标格式不正确，请上传图片文件', 400))
+    const mime = m[1]
+    const b64 = m[2]
+    const extMap = {
+        'image/png': 'png',
+        'image/jpeg': 'jpg',
+        'image/gif': 'gif',
+        'image/webp': 'webp',
+        'image/svg+xml': 'svg',
+        'image/x-icon': 'ico',
+        'image/vnd.microsoft.icon': 'ico'
+    }
+    const ext = extMap[mime]
+    if (!ext) return res.json(fail('不支持的图标格式，请用 svg/png/ico/jpg/gif/webp', 400))
+
+    const rand = crypto.randomBytes(8).toString('hex')
+    const fname = `favicon_${rand}.${ext}`
+    const abs = path.join(UPLOAD_DIR, fname)
+    try {
+        fs.writeFileSync(abs, Buffer.from(b64, 'base64'))
+    } catch (e) {
+        return res.json(fail('保存图标失败: ' + e.message, 500))
+    }
+
+    // 删除上一张已上传的图标（favicon.svg 是 public 静态资源，不在 uploads 目录，永远不会被删）
+    const oldUrl = await getFaviconSetting()
+    if (oldUrl) safeDeleteUploadFile(oldUrl)
+
+    const url = `/api/settings/uploads/${fname}`
+    await setFaviconSetting(url)
+    return res.json(ok({ url }))
+})
+
+// DELETE /api/settings/favicon  仅 admin，恢复默认图标：删除已上传文件并清空配置
+router.delete('/favicon', async (req, res) => {
+    const guard = await requireAdmin(req)
+    if (!guard.ok) return res.json(fail(guard.msg, guard.code))
+
+    const oldUrl = await getFaviconSetting()
+    if (oldUrl) {
+        safeDeleteUploadFile(oldUrl)
+        await setFaviconSetting('')
+    }
+    return res.json(ok({ url: '' }))
 })
 
 // 静态托管上传的图片

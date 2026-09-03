@@ -6,7 +6,7 @@ import { useAuth } from '../auth/useAuth'
 import * as ansApi from '../api/ans'
 import * as authApi from '../api/auth'
 import * as settingsApi from '../api/settings'
-import * as menusApi from '../api/menus'
+import { useMenus } from '../hooks/useMenus'
 import "./Home.css"
 
 const { Link: TypographyLink } = Typography
@@ -22,8 +22,8 @@ export function Header() {
     const isAdmin = user?.role === 'admin'
     // 是否开放注册：未开放时隐藏注册入口（即使通过 URL 直达也会被后端拒绝）
     const [allowRegister, setAllowRegister] = useState(true)
-    // 顶部导航菜单：从后台菜单配置读取（支持二级）
-    const [menus, setMenus] = useState([])
+    // 顶部导航菜单：缓存优先渲染（localStorage/内置兜底瞬间出菜单），后台静默更新
+    const menus = useMenus()
     // 用相对路径 + encodeURIComponent，避免把完整 URL 当成路径拼接
     const from = encodeURIComponent(location.pathname + location.search)
 
@@ -33,12 +33,6 @@ export function Header() {
                 if (res.code === 200) setAllowRegister(res.data.allowRegister)
             })
             .catch(() => { /* 读取失败默认开放，不阻塞页面 */ })
-    }, [])
-
-    useEffect(() => {
-        menusApi.listMenus()
-            .then((res) => { if (res.code === 200) setMenus(res.data) })
-            .catch(() => { /* 读取失败不阻塞，导航留空 */ })
     }, [])
 
     // 渲染单个菜单链接：外链用 <a>，内链用 <Link>；openInNewTab 控制 target

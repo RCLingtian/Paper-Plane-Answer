@@ -52,6 +52,8 @@ const FPC_ALLOW = new Set([
 ])
 app.use(async (req, res, next) => {
     try {
+        // GET /api/settings 是公开只读接口（favicon/菜单/注册开关等），改密期间也放行
+        if (req.method === 'GET' && req.path === '/api/settings') return next()
         if (!req.path.startsWith('/api/') || FPC_ALLOW.has(req.path)) return next()
         const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '')
         const m = /mock_token_(u\d+)_/.exec(token)
