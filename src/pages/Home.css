@@ -1,0 +1,337 @@
+.page.home{
+    position: relative;
+    /* 整页背景：与登录页同源渐变，前台视觉更柔和 */
+    background: linear-gradient(180deg, #f5f7fa 0%, #ffffff 60%);
+}
+.page .ct{
+    display: flex;
+    align-items: center;
+    width: 64rem;
+    max-width: 100%;
+    margin: 0 auto;
+    /* 不在此处设 padding：header 自身有 padding，main 的 .ct 自行设置，
+       避免子级再 padding 导致左右双倍 */
+}
+/* 手机端：固定宽度容器收窄到视窗内，避免横向溢出 */
+@media (max-width: 48rem){
+    .page .ct{
+        width: 100%;
+    }
+}
+/* ===== Header：磨砂玻璃 + 微阴影，现代感更强 ===== */
+#header{
+    position: fixed;
+    left: 0;
+    top: 0;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 3rem;
+    padding: 0 0.75rem;
+    background-color: rgba(255, 255, 255, 0.85);
+    backdrop-filter: saturate(180%) blur(8px);
+    border-bottom: 0.0625rem solid rgba(0, 0, 0, 0.06);
+    box-shadow: 0 0.0625rem 0.5rem rgba(0, 0, 0, 0.04);
+    z-index: 100;
+}
+#header a:hover{
+    background-color: rgba(22, 119, 255, 0.08);
+    color: #1677ff;
+}
+#header .ct{
+    justify-content: space-between;
+}
+#header .ct .bth-list{
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+/* 链接 + 按钮容器统一基线 */
+#header .ct .bth-list > a{
+    display: inline-flex;
+    align-items: center;
+}
+#header .ct a.link,
+#header .ct a.sublink{
+    display: flex;
+    height: 3rem;
+    line-height: 3rem;
+    padding: 0 0.5rem;
+    color: #1f1f1f;
+    transition: color 0.2s, background 0.2s;
+}
+/* 已登录状态：右上角用户信息区，与后台 DashLayout 视觉一致 */
+#header .header-user{
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    padding: 0 0.5rem;
+    height: 3rem;
+    border-radius: 0.375rem;
+    transition: background 0.2s;
+}
+#header .header-user:hover{
+    background: rgba(22, 119, 255, 0.08);
+}
+#header .header-username{
+    font-size: 0.875rem;
+    color: #1f1f1f;
+}
+#header nav ul.nav-list{
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: stretch;
+    gap: 0.25rem;
+}
+#header nav li.nav-item{
+    position: relative;
+    display: flex;
+    align-items: stretch;
+}
+/* 一级链接：垂直居中，文字与箭头同行 */
+#header nav li.nav-item > a.link{
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    line-height: 1;
+}
+/* 有二级菜单的项加下拉箭头（border 三角，避免 inline-block 基线错位） */
+#header nav li.nav-item.has-children > a.link::after{
+    content: '';
+    width: 0;
+    height: 0;
+    border-left: 0.25rem solid transparent;
+    border-right: 0.25rem solid transparent;
+    border-top: 0.3125rem solid currentColor;
+}
+/* 二级菜单：默认隐藏，hover 展开，贴在一级项正下方 */
+#header nav ul.nav-sub{
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 8rem;
+    list-style: none;
+    margin: 0;
+    padding: 0.25rem 0;
+    background: #fff;
+    border: 0.0625rem solid rgba(0, 0, 0, 0.06);
+    border-radius: 0 0 0.5rem 0.5rem;
+    box-shadow: 0 0.5rem 1.25rem rgba(0, 0, 0, 0.1);
+    z-index: 50;
+}
+#header nav li.nav-item:hover > ul.nav-sub{
+    display: block;
+    animation: navSubIn 0.18s ease;
+}
+@keyframes navSubIn{
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+#header nav ul.nav-sub li{
+    display: block;
+}
+#header nav ul.nav-sub a{
+    display: block;
+    height: 2.5rem;
+    line-height: 2.5rem;
+    padding: 0 0.75rem;
+    white-space: nowrap;
+    color: #333;
+}
+#header nav ul.nav-sub a:hover{
+    background: rgba(22, 119, 255, 0.08);
+    color: #1677ff;
+}
+/* ===== Footer：扁平简洁，链接 hover 着色 ===== */
+#footer{
+    display: flex;
+    align-items: center;
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 1.5rem;
+    border-top: 0.0625rem solid rgba(0, 0, 0, 0.06);
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: saturate(180%) blur(8px);
+    padding: 0 0.75rem;
+}
+#footer p{
+    font-size: 0.75rem;
+}
+#footer a:hover{
+    color: #1677ff;
+    text-decoration: underline;
+}
+.page.home main .ct{
+    flex-direction: column;
+    align-items: stretch;
+    /* 上下避开 fixed 的 Header(3rem) 和 Footer(1.5rem)；
+       左右 padding 防止内容贴边/溢出 */
+    padding: 3.625rem 0.75rem 2.25rem;
+    min-height: 100vh;
+}
+/* ===== 推荐区块标题卡 ===== */
+.title-card-head{
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+.title-card h2{
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0 0 0.25rem;
+    color: #1f1f1f;
+}
+.title-card p{
+    font-size: 0.8125rem;
+    color: #888;
+    margin: 0;
+}
+.title-card-empty{
+    padding: 3rem 1rem;
+    text-align: center;
+}
+/* Skeleton 占位网格：与正式卡片同布局 */
+.title-card-skeleton{
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+@media (max-width: 48rem){
+    .title-card-skeleton{
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+.anscard-skeleton{
+    background: #fff;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 0.0625rem 0.5rem rgba(0, 0, 0, 0.04);
+}
+.anscard-skeleton .ant-skeleton-image{
+    width: 100% !important;
+    height: 9rem !important;
+}
+.anscard-skeleton .ant-skeleton{
+    padding: 0.5rem 0.625rem;
+}
+.title-card ul{
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+/* 手机端一行2列 */
+@media (max-width: 48rem){
+    .title-card ul{
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+/* ===== AnsCard 答案卡片 ===== */
+.anscard{
+    --info-h: 5.5rem;
+    display: block;
+    position: relative;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    background: #fff;
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+    box-shadow: 0 0.0625rem 0.5rem rgba(0, 0, 0, 0.06);
+    /* 移除鼠标悬停 3D 旋转/缩放效果，保持静态外观 */
+}
+.anscard-image{
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+}
+.anscard-image img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+/* 图片视窗底部渐变 before：从下纯黑往上渐隐，高度与 info 区域一致 */
+.anscard-image::before{
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: var(--info-h);
+    background: linear-gradient(to top, rgba(0,0,0,0.65), transparent);
+    pointer-events: none;
+    z-index: 1;
+}
+/* info 区域 Poab 叠在图片上方 */
+.anscard-content{
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    min-height: var(--info-h);
+    padding: 0.5rem 0.625rem;
+    color: #fff;
+    z-index: 2;
+}
+.anscard-info{
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin-bottom: 0.25rem;
+}
+.anscard-avatar{
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 100%;
+    object-fit: cover;
+    flex-shrink: 0;
+    /* 头像描边，在深色渐变上更清晰 */
+    border: 0.0625rem solid rgba(255, 255, 255, 0.6);
+}
+.anscard-uploader{
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+.anscard-time{
+    font-size: 0.6875rem;
+    opacity: 0.7;
+    margin-left: auto;
+}
+.anscard-title{
+    font-size: 0.8125rem;
+    font-weight: 600;
+    margin: 0 0 0.1875rem;
+    line-height: 1.3;
+    /* 标题最多两行，超出省略，避免高度跳动 */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+/* 提高特异性至 .anscard .anscard-desc，覆盖外层 .title-card p 的 color: #888 */
+.anscard .anscard-desc{
+    font-size: 0.6875rem;
+    margin: 0;
+    color: #d1d5db;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}

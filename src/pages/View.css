@@ -1,0 +1,35 @@
+/* 答案详情页：iframe 占满中间区域，不使用 .ct */
+.view-page .view-main{
+    /* Header 高 3rem，Footer 高 1.5rem，main 占满中间 */
+    position: relative;
+    width: 100%;
+    height: calc(100vh - 3rem - 1.5rem);
+    margin-top: 3rem;
+    overflow: hidden;
+}
+.view-iframe{
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+/* 返回 + 分享：基于 antd FloatButton
+   antd FloatButton 根元素自身已 position:fixed，且 z-index 较高，
+   这里只确保覆盖层级高于 iframe；定位完全由 inline style 控制
+   top 必须避开顶部 Header（高 3rem），定位到 3.5rem 处 */
+.view-float-back,
+.view-float-share{
+    z-index: 10;
+}
+/* 手机端：稍微挪近边缘
+   因 inline style 优先级最高，必须用 !important 才能覆盖 */
+@media (max-width: 48rem){
+    .view-float-back{
+        top: 3.25rem !important;
+        left: 0.5rem !important;
+    }
+    .view-float-share{
+        top: 3.25rem !important;
+        left: 3.25rem !important;
+    }
+}
